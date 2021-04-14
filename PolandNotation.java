@@ -45,6 +45,9 @@ import java.util.Stack;
  *                      遇到操作数则压入栈中
  *                      遇到运算符，则弹出stack中两个操作数，进行计算。将计算结果重新压入栈中(注意计算顺序，拿第二个弹出的操作数和第一个弹出的进行运算)
  *               4.遍历list结束，将stack栈顶操作数取出即为运算结果
+ *
+ * 三、多位数运算的整合
+ *      参考Calculator.java
  */
 public class PolandNotation {
 
@@ -54,11 +57,10 @@ public class PolandNotation {
         // 说明为了方便，逆波兰表达式的数字和符号使用空格隔开
 
         String middlExpr1 = "1+((2+3)*4)-5";
-        String middlExpr2 = "1+((2+3)*4)-5+6";
-        String middlExpr3 = "(3+4)*5-6";
-        String middlExpr4 = "1+(((2+3)*4)/4)-5+6";
-        String middlExpr5 = "1+2+3+4+5-6";
-        String middlExpr6 = "1+2+3+4+5-6/2";
+        String middlExpr2 = "(3+4)*5-6";
+        String middlExpr3 = "1+(((2+3)*4)/4)-5+6";
+        String middlExpr4 = "10+(((18+2)*2)/4)+6";
+        String middlExpr5 = "10+(18+2)*2-15";
 
         String s1 = middle2Suffix(middlExpr1);
         System.out.println(s1);
@@ -80,9 +82,6 @@ public class PolandNotation {
         System.out.println(s5);
         System.out.println(calculate(getListStr(s5)));
 
-        String s6 = middle2Suffix(middlExpr6);
-        System.out.println(s6);
-        System.out.println(calculate(getListStr(s6)));
     }
 
     public static String middle2Suffix(String middle) {
@@ -93,7 +92,23 @@ public class PolandNotation {
             String curStr = String.valueOf(middle.charAt(i));
             if (curStr.matches("\\d+")) {
                 // 是操作数
-                tmpStack.push(curStr);
+                StringBuilder sb = new StringBuilder();
+                sb.append(curStr);
+                // 个位数没有问题，但是多位数的情况下会出现问题
+                while (true) {
+                    // 如果下标越界，直接break
+                    if (i + 1 >= middle.length()){
+                        break;
+                    }
+                    // 如果下一位数是运算符，就break；
+                    if (ArrayStack.isOper(middle.charAt(i + 1))) {
+                        break;
+                    } else {
+                        // 如果还是数字就拼接
+                        sb.append(middle.charAt(++i));
+                    }
+                }
+                tmpStack.push(sb.toString());
             } else {
                 // 是运算符
                 // 如果operStack为空，或者curStr等于左括号，直接压入operStack
@@ -129,6 +144,7 @@ public class PolandNotation {
     public static void compareAndSwap(String curStr, Stack<String> operStack, Stack<String> tmpStack) {
         // operStack不为空，curStr为 +-*/ 某个字符。curStr和operStack栈顶中比较优先级
         if (operStack.size() == 0) {
+            operStack.push(curStr);
             return;
         }
         String top = operStack.peek();
@@ -140,7 +156,6 @@ public class PolandNotation {
             // <=：取出operStack栈顶的运算符压入tmpStack中，并继续curStr和operStack栈顶中比较优先级
             tmpStack.push(operStack.pop());
             compareAndSwap(curStr, operStack, tmpStack);
-            operStack.push(curStr);
         }
     }
 
