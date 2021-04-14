@@ -15,161 +15,162 @@ package com.zhuyz.algorithm.stack;
 public class Calculator {
 
     public static void main(String[] args) {
-        //String expr = "3+2*6-2";
-        //String expr2 = "3+2*6-2+8/2*3-3+1*3";
-        // 实现多位数字的四则运算
-        String expr3 = "70+2*6-4";
-        String expr4 = "70+2*60-4";
-        //int res = calulate(expr);
-        //int res2 = calulate(expr2);
-        int res3 = calulate(expr3);
-        int res4 = calulate(expr4);
-        //System.out.println(res);
-        //System.out.println(res2);
-        System.out.println(res3);
-        System.out.println(res4);
+        // 先定义逆波兰表达式
+        // (3+4)*5-6   => 3 4 + 5 * 6 -
+        // 说明为了方便，逆波兰表达式的数字和符号使用空格隔开
+
+        String middlExpr1 = "1+((2+3)*4)-5";
+        String middlExpr2 = "1+((2+3)*4)-5+6";
+        String middlExpr3 = "(3+4)*5-6";
+        String middlExpr4 = "1+(((2+3)*4)/4)-5+6";
+        String middlExpr5 = "1+2+3+4+5-6";
+        String middlExpr6 = "1+2+3+4+5-6/2";
+
+        String s1 = middle2Suffix(middlExpr1);
+        System.out.println(s1);
+        System.out.println(calculate(getListStr(s1)));
+
+        String s2 = middle2Suffix(middlExpr2);
+        System.out.println(s2);
+        System.out.println(calculate(getListStr(s2)));
+
+        String s3 = middle2Suffix(middlExpr3);
+        System.out.println(s3);
+        System.out.println(calculate(getListStr(s3)));
+
+        String s4 = middle2Suffix(middlExpr4);
+        System.out.println(s4);
+        System.out.println(calculate(getListStr(s4)));
+
+        String s5 = middle2Suffix(middlExpr5);
+        System.out.println(s5);
+        System.out.println(calculate(getListStr(s5)));
+
+        String s6 = middle2Suffix(middlExpr6);
+        System.out.println(s6);
+        System.out.println(calculate(getListStr(s6)));
     }
 
-    public static int calulate(String expr) {
-        ArrayStack numStack = new ArrayStack(expr.length());
-        ArrayStack operStack = new ArrayStack(expr.length());
-        for (int i = 0; i < expr.length(); i++) {
-            char c = expr.charAt(i);
-            boolean oper = ArrayStack.isOper(c);
-            if (!oper) {
+    public static String middle2Suffix(String middle) {
+        Stack<String> operStack = new Stack<>();
+        Stack<String> tmpStack = new Stack<>();
+
+        for (int i = 0; i < middle.length(); i++) {
+            String curStr = String.valueOf(middle.charAt(i));
+            if (curStr.matches("\\d+")) {
+                // 是操作数
+                tmpStack.push(curStr);
+            } else {
+                // 是运算符
+                // 如果operStack为空，或者curStr等于左括号，直接压入operStack
+                if (operStack.size() == 0 || "(".equals(curStr)) {
+                    // 如果为空，直接压入运算符栈
+                    operStack.push(curStr);
+                    continue;
+                }
+                // 如果是右括号，直接弹出operStack两个字符串
+                if (")".equals(curStr)) {
+                    // 弹出运算符，并压入到tmpStack中
+                    String oper = operStack.pop();
+                    tmpStack.push(oper);
+                    // 弹出左括号
+                    operStack.pop();
+                    continue;
+                }
+                compareAndSwap(curStr, operStack, tmpStack);
+            }
+        }
+        // 将剩余的运算符弹出并压入tmpStack中
+        while (operStack.size() != 0) {
+            tmpStack.push(operStack.pop());
+        }
+        List<String> resList = new ArrayList<>();
+        while (tmpStack.size() != 0) {
+            resList.add(tmpStack.pop());
+        }
+        Collections.reverse(resList);
+        return String.join(" ", resList);
+    }
+
+    public static void compareAndSwap(String curStr, Stack<String> operStack, Stack<String> tmpStack) {
+        // operStack不为空，curStr为 +-*/ 某个字符。curStr和operStack栈顶中比较优先级
+        if (operStack.size() == 0) {
+            return;
+        }
+        String top = operStack.peek();
+        if (priority(curStr) > priority(top)) {
+            // >：将curStr压入operStack中
+            operStack.push(curStr);
+            return;
+        } else {
+            // <=：取出operStack栈顶的运算符压入tmpStack中，并继续curStr和operStack栈顶中比较优先级
+            tmpStack.push(operStack.pop());
+            // 递归
+            compareAndSwap(curStr, operStack, tmpStack);
+            operStack.push(curStr);
+        }
+    }
+
+
+
+    // 返回运算符的优先级
+    public static int priority(String oper) {
+        if ("*".equals(oper) || "/".equals(oper)) {
+            return 2;
+        } else if ("+".equals(oper) || "-".equals(oper)) {
+            return 1;
+        } else {
+            return -0;
+        }
+    }
+
+
+    public static List<String> getListStr(String suffixExpr) {
+        List<String> resList = new ArrayList<>();
+
+        String[] arr = suffixExpr.split(" ");
+        for (String s : arr) {
+            resList.add(s);
+        }
+        return resList;
+    }
+
+    public static int calculate(List<String> ls) {
+        Stack<String> stack = new Stack<>();
+
+        for (String item : ls) {
+            if (item.matches("\\d+")) {
                 // 操作数
-                StringBuilder sb = new StringBuilder();
-                sb.append(c);
-                // 个位数没有问题，但是多位数的情况下会出现问题
-                while (true) {
-                    // 如果下标越界，直接break
-                    if (i + 1 >= expr.length()){
-                        break;
-                    }
-                    // 如果下一位数是运算符，就break；
-                    if (ArrayStack.isOper(expr.charAt(i + 1))) {
-                        break;
-                    } else {
-                        // 如果还是数字就拼接
-                        sb.append(expr.charAt(++i));
-                    }
-                }
-                numStack.push(Integer.valueOf(sb.toString()));
+                stack.push(item);
             } else {
-                // 运算符
-                // 1.判断运算符栈是否有值
-                if (operStack.top > -1) {
-                    // 有值
-                    // 判断优先级
-                    // <=：取出运算符栈字符和操作数栈中的两个操作数进行计算，计算完的结果重新压入操作数栈
-                    // >：将当前字符压入运算符栈
-                    int pop = operStack.pop();
-                    if (ArrayStack.priority(c) <= ArrayStack.priority(pop)) {
-                        int next = numStack.pop();
-                        int prev = numStack.pop();
-                        int cal = ArrayStack.cal(next, prev, pop);
-                        numStack.push(cal);
-                    } else {
-                        operStack.push(pop);
-                    }
-                    operStack.push(c);
-                } else {
-                    // 没值，直接压入运算符栈
-                    operStack.push(c);
-                }
+                int next = Integer.valueOf(stack.pop());
+                int prev = Integer.valueOf(stack.pop());
+                int res = cal(next, prev, item);
+                stack.push(String.valueOf(res));
             }
         }
-        int len = operStack.top + 1;
-        for (int i = 0; i < len; i++) {
-            int next = numStack.pop();
-            int prev = numStack.pop();
-            int pop = operStack.pop();
-            numStack.push(ArrayStack.cal(next, prev, pop));
-        }
-        return numStack.pop();
+        return Integer.valueOf(stack.pop());
     }
 
-
-    // 扩展功能
-    public static class ArrayStack {
-
-        private int maxSize; // 栈大小
-        private int[] arr;
-        private int top = -1; // 表示栈顶
-
-        public ArrayStack(int maxSize) {
-            this.maxSize = maxSize;
-            arr = new int[maxSize];
+    public static int cal(int n1, int n2, String oper) {
+        int res = 0; // 存放计算的结果
+        switch (oper) {
+            case "+":
+                res = n1 + n2;
+                break;
+            case "-":
+                res = n2 - n1;
+                break;
+            case "*":
+                res = n1 * n2;
+                break;
+            case "/":
+                res = n2 / n1;
+                break;
+            default:
+                break;
         }
-
-        public boolean isFull() {
-            return top == maxSize - 1;
-        }
-
-        public boolean isEmpty() {
-            return top == -1;
-        }
-
-        public void push(int num) {
-            if (isFull()) {
-                System.out.println("is full");
-                return;
-            }
-            arr[++top] = num;
-        }
-
-        public int pop() {
-            if (isEmpty()) {
-                System.out.println("is empty");
-                throw new RuntimeException("error");
-            }
-            return arr[top--];
-        }
-
-        public void list() {
-            if (isEmpty()) {
-                System.out.println("is empty");
-            }
-            for (int i = top; i >= 0; i--) {
-                System.out.printf("arr[%d]=%d\n", i, arr[i]);
-            }
-        }
-
-        // 返回运算符的优先级
-        public static int priority(int oper) {
-            if (oper == '*' || oper == '/') {
-                return 1;
-            } else if (oper == '*' || oper == '-') {
-                return 0;
-            } else {
-                return -1;
-            }
-        }
-
-        // 判断是否是运算符
-        public static boolean isOper(char val) {
-            return val == '+' || val == '-' || val == '*' || val == '/';
-        }
-
-        public static int cal(int n1, int n2, int oper) {
-            int res = 0; // 存放计算的结果
-            switch (oper) {
-                case '+':
-                    res = n1 + n2;
-                    break;
-                case '-':
-                    res = n2 - n1;
-                    break;
-                case '*':
-                    res = n1 * n2;
-                    break;
-                case '/':
-                    res = n2 / n1;
-                    break;
-                default:
-                    break;
-            }
-            return res;
-        }
+        return res;
     }
+
 }
