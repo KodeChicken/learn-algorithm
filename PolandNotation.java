@@ -46,162 +46,144 @@ import java.util.Stack;
  *                      遇到运算符，则弹出stack中两个操作数，进行计算。将计算结果重新压入栈中(注意计算顺序，拿第二个弹出的操作数和第一个弹出的进行运算)
  *               4.遍历list结束，将stack栈顶操作数取出即为运算结果
  *
- * 三、多位数运算的整合
- *      参考Calculator.java
  */
 public class PolandNotation {
 
     public static void main(String[] args) {
-        // 先定义逆波兰表达式
-        // (3+4)*5-6   => 3 4 + 5 * 6 -
-        // 说明为了方便，逆波兰表达式的数字和符号使用空格隔开
-
         String middlExpr1 = "1+((2+3)*4)-5";
         String middlExpr2 = "(3+4)*5-6";
         String middlExpr3 = "1+(((2+3)*4)/4)-5+6";
         String middlExpr4 = "10+(((18+2)*2)/4)+6";
         String middlExpr5 = "10+(18+2)*2-15";
-
-        String s1 = middle2Suffix(middlExpr1);
-        System.out.println(s1);
-        System.out.println(calculate(getListStr(s1)));
-
-        String s2 = middle2Suffix(middlExpr2);
-        System.out.println(s2);
-        System.out.println(calculate(getListStr(s2)));
-
-        String s3 = middle2Suffix(middlExpr3);
-        System.out.println(s3);
-        System.out.println(calculate(getListStr(s3)));
-
-        String s4 = middle2Suffix(middlExpr4);
-        System.out.println(s4);
-        System.out.println(calculate(getListStr(s4)));
-
-        String s5 = middle2Suffix(middlExpr5);
-        System.out.println(s5);
-        System.out.println(calculate(getListStr(s5)));
+        String middlExpr6 = "10+(18+2-((1*2-2)/1))*2-15";
+        test(middlExpr1);
+        test(middlExpr2);
+        test(middlExpr3);
+        test(middlExpr4);
+        test(middlExpr5);
+        test(middlExpr6);
 
     }
 
-    public static String middle2Suffix(String middle) {
-        Stack<String> operStack = new Stack<>();
-        Stack<String> tmpStack = new Stack<>();
+    /**
+     * 测试运算结果
+     */
+    private static void test(String middlExpr) {
+        List<String> transformList = transformList(middlExpr);
+        Stack<String> suffixStack = middle2Suffix(transformList);
+        int calculate = calculate(suffixStack);
+        System.out.printf("transformList: %s\n", transformList);
+        System.out.printf("suffixStack: %s\n", suffixStack);
+        System.out.printf("计算结果为：[%d]\n", calculate);
+        System.out.println("========end========");
+    }
 
-        for (int i = 0; i < middle.length(); i++) {
-            String curStr = String.valueOf(middle.charAt(i));
+    /**
+     * 将中缀表达式转换成一个list 并且兼容多位数
+     */
+    public static List<String> transformList(String middlExpr) {
+        List<String> resList = new ArrayList<>();
+
+        int len = middlExpr.length();
+        for (int i = 0; i < len; i++) {
+            String curStr = String.valueOf(middlExpr.charAt(i));
+            StringBuilder sb = new StringBuilder(curStr);
             if (curStr.matches("\\d+")) {
                 // 是操作数
-                StringBuilder sb = new StringBuilder();
-                sb.append(curStr);
                 // 个位数没有问题，但是多位数的情况下会出现问题
-                while (true) {
-                    // 如果下标越界，直接break
-                    if (i + 1 >= middle.length()){
-                        break;
-                    }
-                    // 如果下一位数是运算符，就break；
-                    if (ArrayStack.isOper(middle.charAt(i + 1))) {
-                        break;
-                    } else {
-                        // 如果还是数字就拼接
-                        sb.append(middle.charAt(++i));
-                    }
+                // 如果下标越界并且如果下一位数是运算符，就退出循环
+                while (i + 1 < len && !isOper(middlExpr.charAt(i + 1))) {
+                    // 是数字就拼接
+                    sb.append(middlExpr.charAt(++i));
                 }
-                tmpStack.push(sb.toString());
-            } else {
-                // 是运算符
-                // 如果operStack为空，或者curStr等于左括号，直接压入operStack
-                if (operStack.size() == 0 || "(".equals(curStr)) {
-                    // 如果为空，直接压入运算符栈
-                    operStack.push(curStr);
-                    continue;
-                }
-                // 如果是右括号，直接弹出operStack两个字符串
-                if (")".equals(curStr)) {
-                    // 弹出运算符，并压入到tmpStack中
-                    String oper = operStack.pop();
-                    tmpStack.push(oper);
-                    // 弹出左括号
-                    operStack.pop();
-                    continue;
-                }
-                compareAndSwap(curStr, operStack, tmpStack);
             }
-        }
-        // 将剩余的运算符弹出并压入tmpStack中
-        while (operStack.size() != 0) {
-            tmpStack.push(operStack.pop());
-        }
-        List<String> resList = new ArrayList<>();
-        while (tmpStack.size() != 0) {
-            resList.add(tmpStack.pop());
-        }
-        Collections.reverse(resList);
-        return String.join(" ", resList);
-    }
-
-    public static void compareAndSwap(String curStr, Stack<String> operStack, Stack<String> tmpStack) {
-        // operStack不为空，curStr为 +-*/ 某个字符。curStr和operStack栈顶中比较优先级
-        if (operStack.size() == 0) {
-            operStack.push(curStr);
-            return;
-        }
-        String top = operStack.peek();
-        if (priority(curStr) > priority(top)) {
-            // >：将curStr压入operStack中
-            operStack.push(curStr);
-            return;
-        } else {
-            // <=：取出operStack栈顶的运算符压入tmpStack中，并继续curStr和operStack栈顶中比较优先级
-            tmpStack.push(operStack.pop());
-            compareAndSwap(curStr, operStack, tmpStack);
-        }
-    }
-
-
-
-    // 返回运算符的优先级
-    public static int priority(String oper) {
-        if ("*".equals(oper) || "/".equals(oper)) {
-            return 2;
-        } else if ("+".equals(oper) || "-".equals(oper)) {
-            return 1;
-        } else {
-            return -0;
-        }
-    }
-
-
-    public static List<String> getListStr(String suffixExpr) {
-        List<String> resList = new ArrayList<>();
-
-        String[] arr = suffixExpr.split(" ");
-        for (String s : arr) {
-            resList.add(s);
+            resList.add(sb.toString());
         }
         return resList;
     }
 
+    /**
+     * 中缀转后缀
+     */
+    public static Stack<String> middle2Suffix(List<String> transformList) {
+        // 运算符栈
+        Stack<String> s1 = new Stack<>();
+        // 存储中间结果的栈
+        Stack<String> s2 = new Stack<>();
+
+        for (String item : transformList) {
+            if (item.matches("\\d+")) {
+                // 是操作数，用add方法添加到tmpStack的末尾
+                s2.add(item);
+            } else if (OperTypeEnum.LEFT.getOperType().equals(item)) {
+                // 是左括号，直接push到operStack中
+                s1.push(item);
+            } else if (OperTypeEnum.RIGHT.getOperType().equals(item)) {
+                // 是右括号，循环弹出operStack栈顶的元素，直到遇到左括号break，并且把左括号也弹出丢弃
+                while (!OperTypeEnum.LEFT.getOperType().equals(s1.peek())) {
+                    s2.add(s1.pop());
+                }
+                // 把左括号也弹出丢弃
+                s1.pop();
+            } else {
+                // 是运算符
+                // 比较item和s1栈顶的运算符优先级大小
+                // 大于：直接压入s1栈顶
+                // 小于等于：弹出s1栈顶元素到s2中，进入下一次循环继续比较(可用循环或者递归)
+                while (s1.size() != 0 && priority(item) <= priority(s1.peek())) {
+                    s2.add(s1.pop());
+                }
+                // 上面while退出，则代表优先级:item 大于s1栈顶元素
+                s1.push(item);
+            }
+        }
+        // 将剩余的运算符弹出并压入s2中
+        while (s1.size() != 0) {
+            s2.push(s1.pop());
+        }
+        return s2;
+    }
+
+    /**
+     * 计算后缀表达式的值
+     */
     public static int calculate(List<String> ls) {
-        Stack<String> stack = new Stack<>();
+        Stack<String> resStack = new Stack<>();
 
         for (String item : ls) {
             if (item.matches("\\d+")) {
-                // 操作数
-                stack.push(item);
+                // 是操作数
+                resStack.push(item);
             } else {
-                int next = Integer.valueOf(stack.pop());
-                int prev = Integer.valueOf(stack.pop());
+                // 是运算符
+                int next = Integer.valueOf(resStack.pop());
+                int prev = Integer.valueOf(resStack.pop());
                 int res = cal(next, prev, item);
-                stack.push(String.valueOf(res));
+                resStack.push(String.valueOf(res));
             }
         }
-        return Integer.valueOf(stack.pop());
+        return Integer.valueOf(resStack.pop());
     }
 
+    /**
+     * 返回运算符的优先级
+     */
+    public static int priority(String oper) {
+        if (OperTypeEnum.MUL.getOperType().equals(oper) || OperTypeEnum.DIV.getOperType().equals(oper)) {
+            return 2;
+        } else if (OperTypeEnum.ADD.getOperType().equals(oper) || SUB.getOperType().equals(oper)) {
+            return 1;
+        } else {
+            return 0;
+        }
+    }
+
+    /**
+     * 获取运算结果
+     */
     public static int cal(int n1, int n2, String oper) {
-        int res = 0; // 存放计算的结果
+        // 存放计算的结果
+        int res = 0;
         switch (oper) {
             case "+":
                 res = n1 + n2;
@@ -219,6 +201,32 @@ public class PolandNotation {
                 break;
         }
         return res;
+    }
+
+    /**
+     * 判断是否是运算符
+     */
+    public static boolean isOper(char val) {
+        return val == '+' || val == '-' || val == '*' || val == '/' || val == ')';
+    }
+
+    enum OperTypeEnum {
+        LEFT("("),
+        RIGHT(")"),
+        ADD("+"),
+        SUB("-"),
+        MUL("*"),
+        DIV("/");
+
+        private String operType;
+
+        OperTypeEnum(String operType) {
+            this.operType = operType;
+        }
+
+        public String getOperType() {
+            return operType;
+        }
     }
 
 }
