@@ -34,9 +34,6 @@ public class MiGong {
 
         map[3][1] = 1;
         map[3][2] = 1;
-        //map[1][2] = 1;
-        map[2][2] = 1;
-
 
         for (int i = 0; i < 8; i++) {
             for (int j = 0; j < 7; j++) {
