@@ -41,7 +41,7 @@ import java.util.Arrays;
  *
  *
  * 3.总结：bubbleSort 规则
- *      1.一共进行[arr.length-1]次外层的循环
+ *      1.一共进行arr.length-1次外层的循环
  *      2.每一趟的内层排序次数在递减
  *      3.优化：如果我们发现在某趟的内层排序中，没有发生一次交换，就代表已经是有序的，可以提前结束冒泡排序
  *
@@ -49,14 +49,23 @@ import java.util.Arrays;
 public class BubbleSort {
 
     public static void main(String[] args) {
-        int[] arr = new int[]{3,9,-1,10,20};
-        int[] arr2 = new int[]{3,9,-2,-1,20};
+        //int[] arr = new int[]{3,9,-1,10,20};
+        //int[] arr2 = new int[]{3,9,-2,-1,20};
         // 演变
         evolutionBubbleSort();
         // 冒泡
-        bubbleSort(arr);
+        //bubbleSort(arr);
         // 递归冒泡
-        recursive(arr2, 0);
+        //recursive(arr2, 0);
+
+        System.out.println();
+
+        int[] arr = new int[1000];
+        for (int i = 0; i < 1000; i++) {
+            arr[i] = (int) (Math.random() * 100000);
+        }
+        bubbleSort(arr);
+
     }
 
     /**
@@ -102,6 +111,7 @@ public class BubbleSort {
                     flag = false;
                 }
             }
+            System.out.println("第" + (i + 1) + "趟排序后的数组" + Arrays.toString(arr));
             // 如果未发生交换，则代表已经有序，直接结束冒泡排序
             if (flag) {
                 break;
@@ -133,5 +143,4 @@ public class BubbleSort {
             arr[i + 1] = tmp;
         }
     }
-
 }
