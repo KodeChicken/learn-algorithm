@@ -5,7 +5,7 @@ import java.util.Arrays;
 
 /**
  * 选择排序时间复杂度：O(n^2)
- * 
+ *
  * 1.选择排序基本思想：
  *      n = arr.length
  *      第一轮(i=0)：
@@ -54,24 +54,10 @@ public class SelectSort {
 
     }
 
-    public static void selectSort(int[] arr) {
-        for (int i = 0; i < arr.length - 1; i++) {
-            int min = arr[i];
-            int minIdx = i;
-            for (int j = i + 1; j < arr.length; j++) {
-                // 如果arr[j] 比 min还小，就重置min minIdx
-                if (arr[j] < min) {
-                    // 重置 min mindIdx
-                    min = arr[j];
-                    minIdx = j;
-                }
-            }
-            // 将最小值放在arr[i]处
-            exchange(i, minIdx, min, arr);
-            System.out.println("第" + (i + 1) + "轮后：" + Arrays.toString(arr));
-        }
-    }
-
+    /**
+     * 选择排序演变过程
+     *
+     */
     public static void evolutionSelectSort() {
         int[] arr = new int[]{101, 34, 119, 1};
         int n = arr.length;
@@ -121,6 +107,24 @@ public class SelectSort {
         exchange(2, minIdx, min, arr);
         System.out.println("第3轮后：" + Arrays.toString(arr));
 
+    }
+
+    public static void selectSort(int[] arr) {
+        for (int i = 0; i < arr.length - 1; i++) {
+            int min = arr[i];
+            int minIdx = i;
+            for (int j = i + 1; j < arr.length; j++) {
+                // 如果arr[j] 比 min还小，就重置min minIdx
+                if (arr[j] < min) {
+                    // 重置 min mindIdx
+                    min = arr[j];
+                    minIdx = j;
+                }
+            }
+            // 将最小值放在arr[i]处
+            exchange(i, minIdx, min, arr);
+            System.out.println("第" + (i + 1) + "轮后：" + Arrays.toString(arr));
+        }
     }
 
     /**
