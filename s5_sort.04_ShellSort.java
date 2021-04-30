@@ -1,6 +1,9 @@
 package com.zhuyz.algorithm.s5_sort.shell;
 
 
+import com.zhuyz.algorithm.s5_sort.utils.Utils;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 
 /**
@@ -50,25 +53,37 @@ import java.util.Arrays;
  *      第三轮：1个数为一行(步长：1)
  *          对列进行排序，结果就是有序的了
  *
- *
  */
 public class ShellSort {
 
-
     public static void main(String[] args) {
-        int[] arr = new int[]{8, 9, 1, 7, 2, 3, 5, 4, 6, 0};
-        evolutionShellSort();
-        System.out.println("=============");
+        //int[] arr = new int[]{8, 9, 1, 7, 2, 3, 5, 4, 6, 0};
+        //evolutionShellSort();
+        //System.out.println("=============");
+        //shellSort(arr);
+
+        int[] arr = Utils.randomArr(80000);
+        DateTimeFormatter formatter =DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS");
+        System.out.println("排序前时间：" + formatter.format(LocalDateTime.now()));
         shellSort(arr);
+        optimizeShellSort(arr);
+        System.out.println("排序后时间：" + formatter.format(LocalDateTime.now()));
+
+        System.out.println("===========");
+
+        int[] arr2 = Utils.randomArr(80000);
+        System.out.println("排序前时间：" + formatter.format(LocalDateTime.now()));
+        //shellSort(arr);
+        optimizeShellSort(arr2);
+        System.out.println("排序后时间：" + formatter.format(LocalDateTime.now()));
 
     }
 
     /**
-     * 希尔排序演变过程
+     * 重要！！！希尔排序演变过程
      */
     public static void evolutionShellSort() {
         int[] arr = new int[]{8, 9, 1, 7, 2, 3, 5, 4, 6, 0};
-        //int[] arr = new int[]{1, 3, 11, 17, 22, 13, 15, 9, 6, 0};
 
         // 第1轮排序，是将10个数据分成了5组
         for (int i = 5; i < arr.length; i++) {
@@ -100,20 +115,50 @@ public class ShellSort {
 
     }
 
+    /**
+     * 交换式
+     */
     public static void shellSort(int[] arr) {
-        int n = arr.length/2;
         int l = 1;
-        while (n >= 1) {
-            for (int i = n; i < arr.length; i++) {
-                for (int j = i - n; j >= 0; j -= n) {
-                    exchange(arr, j, n);
+        for (int gap = arr.length / 2; gap > 0; gap /= 2) {
+            for (int i = gap; i < arr.length; i++) {
+                for (int j = i - gap; j >= 0; j -= gap) {
+                    exchange(arr, j, gap);
                 }
             }
-            System.out.println("第" + (l++) + "轮排序：" + Arrays.toString(arr));
-            n /= 2;
+            //System.out.println("希尔排序第" + (l++) + "轮排序：" + Arrays.toString(arr));
         }
     }
 
+    /**
+     * 移位式(利用插入排序的移位)
+     * @param arr
+     */
+    public static void optimizeShellSort(int[] arr) {
+        int l = 1;
+        // 增量gap，并逐步缩小增量
+        for (int gap = arr.length / 2; gap > 0; gap /= 2) {
+            // 从第gap个元素，逐个对其所在的组进行直接插入排序
+            for (int i = gap; i < arr.length; i++) {
+                int j = i;
+                int temp = arr[i];
+                if (temp < arr[j - gap]) {
+                    while (j - gap >= 0 && temp < arr[j - gap]) {
+                       // 把前面j - gap 位置的数后移到j的位置上
+                        arr[j] = arr[j - gap];
+                        j -= gap;
+                    }
+                    // 退出while循环后，就给temp找到插入的位置
+                    arr[j] = temp;
+                }
+            }
+            //System.out.println("希尔排序第" + (l++) + "轮排序：" + Arrays.toString(arr));
+        }
+    }
+
+    /**
+     * 比较交换
+     */
     private static void exchange(int[] arr, int j, int step) {
         if (arr[j] > arr[j + step]) {
             int tmp = arr[j];
@@ -121,6 +166,4 @@ public class ShellSort {
             arr[j + step] = tmp;
         }
     }
-
-
 }
