@@ -7,8 +7,8 @@ import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 
 /**
- * 希尔排序是简单插入排序改进后更高阶的版本，也称为缩小增量排序，
- * 插入排序一般来说比较抵消，因为插入排序每次只能将数据移动一位
+ * 希尔排序是简单插入排序改进后更高阶的版本，也称为缩小增量排序
+ * 插入排序一般来说比较慢，因为插入排序每次只能将数据移动一位
  *
  * 1.希尔排序思想：
  *      分组插入方法，跳跃式比较交换：
@@ -52,6 +52,8 @@ import java.util.Arrays;
  *
  *      第三轮：1个数为一行(步长：1)
  *          对列进行排序，结果就是有序的了
+ *          
+ * 重点！！！evolutionShellSort演变方法
  *
  */
 public class ShellSort {
